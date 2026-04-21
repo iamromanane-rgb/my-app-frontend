@@ -1,0 +1,17 @@
+.layout {
+  min-height: 100vh;
+}
+
+.layout-main {
+  margin-left: var(--sidebar-width);
+  margin-top: var(--navbar-height);
+  padding: 28px 32px;
+  min-height: calc(100vh - var(--navbar-height));
+}
+
+@media (max-width: 768px) {
+  .layout-main {
+    margin-left: 0;
+    padding: 20px 16px;
+  }
+}

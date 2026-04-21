@@ -1,0 +1,91 @@
+.admin-scheduler {
+  max-width: 720px;
+}
+
+/* Status card */
+.scheduler-status-card {
+  margin-bottom: 20px;
+}
+
+.scheduler-status-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.scheduler-status-header h3 {
+  font-size: 1rem;
+}
+
+.scheduler-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.scheduler-active {
+  background: var(--color-success-light);
+  color: var(--color-success);
+}
+
+.scheduler-inactive {
+  background: var(--color-danger-light);
+  color: var(--color-danger);
+}
+
+.scheduler-current-cron {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+}
+
+.scheduler-current-cron code {
+  background: var(--color-primary-50);
+  color: var(--color-primary);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+}
+
+/* Config card */
+.scheduler-config-card {
+  margin-bottom: 20px;
+}
+
+.scheduler-config-card h3 {
+  font-size: 1rem;
+  margin-bottom: 16px;
+}
+
+.cron-help {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin-top: 4px;
+}
+
+.scheduler-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+/* Reference card */
+.scheduler-ref {
+  margin-bottom: 20px;
+}
+
+.scheduler-ref h3 {
+  font-size: 1rem;
+  margin-bottom: 12px;
+}

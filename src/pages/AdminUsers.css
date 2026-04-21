@@ -1,0 +1,41 @@
+.admin-users {
+  max-width: 1100px;
+}
+
+/* Search bar */
+.admin-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.admin-search-type {
+  width: 140px;
+  flex-shrink: 0;
+}
+
+.admin-search-bar {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 200px;
+  gap: 8px;
+}
+
+.admin-search-icon {
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.admin-search-bar .form-control {
+  flex: 1;
+  border: none;
+  padding: 8px 0;
+}
+
+.admin-search-bar .form-control:focus {
+  box-shadow: none;
+}

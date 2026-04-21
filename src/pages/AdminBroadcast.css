@@ -1,0 +1,65 @@
+.admin-broadcast {
+  max-width: 700px;
+}
+
+.broadcast-card {
+  margin-bottom: 20px;
+}
+
+.char-count {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  text-align: right;
+  display: block;
+  margin-top: 2px;
+}
+
+/* Result */
+.broadcast-result {
+  margin-bottom: 20px;
+}
+
+.broadcast-result h3 {
+  font-size: 1rem;
+  margin-bottom: 16px;
+}
+
+.broadcast-result-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.broadcast-stat {
+  text-align: center;
+  padding: 16px;
+  background: var(--color-primary-50);
+  border-radius: var(--radius-sm);
+}
+
+.broadcast-stat--success {
+  background: var(--color-success-light);
+}
+
+.broadcast-stat--danger {
+  background: var(--color-danger-light);
+}
+
+.broadcast-stat-value {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.broadcast-stat-label {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  margin-top: 2px;
+}
+
+/* Confirm */
+.broadcast-confirm-icon {
+  text-align: center;
+  color: var(--color-warning);
+  margin-bottom: 12px;
+}
