@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { FiGift, FiAward, FiStar, FiCalendar, FiX, FiSearch } from 'react-icons/fi';
+import { FiGift, FiAward, FiStar, FiCalendar, FiX, FiSearch, FiGrid, FiList, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import './Dashboard.css';
 
 const eventIcon = (type) => {
@@ -62,16 +62,65 @@ const filterEventsByTimeframe = (allEvents, days) => {
   });
 };
 
+// Helper functions for calendar view
+const getDaysInMonth = (date) => {
+  return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+};
+
+const getFirstDayOfMonth = (date) => {
+  return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+};
+
+const getCalendarDays = (date) => {
+  const daysInMonth = getDaysInMonth(date);
+  const firstDay = getFirstDayOfMonth(date);
+  const days = [];
+  
+  // Add empty cells for days before month starts
+  for (let i = 0; i < firstDay; i++) {
+    days.push(null);
+  }
+  
+  // Add days of month
+  for (let i = 1; i <= daysInMonth; i++) {
+    days.push(i);
+  }
+  
+  return days;
+};
+
+const getEventsForDate = (events, year, month, day) => {
+  if (!day) return [];
+  return events.filter(event => {
+    const eventDate = new Date(event.eventDate + 'T00:00:00');
+    return eventDate.getDate() === day && 
+           eventDate.getMonth() === month && 
+           eventDate.getFullYear() === year;
+  });
+};
+
+const getYearlyRecurringEventsForDate = (events, month, day) => {
+  // For recurring yearly events
+  return events.filter(event => {
+    const eventDate = new Date(event.eventDate + 'T00:00:00');
+    return eventDate.getDate() === day && eventDate.getMonth() === month;
+  });
+};
+
 const Dashboard = () => {
   const { user } = useAuth();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedTimeframe, setSelectedTimeframe] = useState(7);
-  const [selectedEventType, setSelectedEventType] = useState('all'); // all, birthday, anniversary, other
+  const [selectedEventType, setSelectedEventType] = useState('all');
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [suggestedUsers, setSuggestedUsers] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [viewMode, setViewMode] = useState('list'); // list, grid, calendar
+  const [calendarMonth, setCalendarMonth] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [detailedEvent, setDetailedEvent] = useState(null); // For event details modal
   const searchInputRef = useRef(null);
   const dropdownRef = useRef(null);
 
@@ -185,6 +234,36 @@ const Dashboard = () => {
               {option.label}
             </button>
           ))}
+        </div>
+      </div>
+
+      {/* View mode toggle */}
+      <div className="view-mode-toggle card">
+        <div className="view-mode-buttons">
+          <button
+            className={`view-mode-btn ${viewMode === 'list' ? 'view-mode-btn--active' : ''}`}
+            onClick={() => setViewMode('list')}
+            title="List view"
+          >
+            <FiList size={18} />
+            <span>List</span>
+          </button>
+          <button
+            className={`view-mode-btn ${viewMode === 'grid' ? 'view-mode-btn--active' : ''}`}
+            onClick={() => setViewMode('grid')}
+            title="Grid view"
+          >
+            <FiGrid size={18} />
+            <span>Grid</span>
+          </button>
+          <button
+            className={`view-mode-btn ${viewMode === 'calendar' ? 'view-mode-btn--active' : ''}`}
+            onClick={() => setViewMode('calendar')}
+            title="Calendar view"
+          >
+            <FiCalendar size={18} />
+            <span>Calendar</span>
+          </button>
         </div>
       </div>
 
@@ -324,10 +403,76 @@ const Dashboard = () => {
         </div>
       )}
 
-      {/* Event cards */}
+      {/* Event cards - different views */}
       {loading ? (
         <div className="loading-center">
           <div className="spinner" />
+        </div>
+      ) : viewMode === 'calendar' ? (
+        // CALENDAR VIEW
+        <div className="card calendar-card">
+          <div className="calendar-header">
+            <button 
+              className="calendar-nav-btn"
+              onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1, 1))}
+            >
+              <FiChevronLeft size={20} />
+            </button>
+            <h3 className="calendar-month-title">
+              {calendarMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+            </h3>
+            <button 
+              className="calendar-nav-btn"
+              onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 1))}
+            >
+              <FiChevronRight size={20} />
+            </button>
+          </div>
+
+          {/* Weekday headers */}
+          <div className="calendar-grid">
+            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+              <div key={day} className="calendar-weekday">
+                {day}
+              </div>
+            ))}
+
+            {/* Calendar days */}
+            {getCalendarDays(calendarMonth).map((day, idx) => {
+              const dayEvents = day ? getYearlyRecurringEventsForDate(filteredEvents, calendarMonth.getMonth(), day) : [];
+              const isToday = day && new Date().toDateString() === new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), day).toDateString();
+              
+              return (
+                <div 
+                  key={idx} 
+                  className={`calendar-day ${day ? '' : 'calendar-day--empty'} ${isToday ? 'calendar-day--today' : ''} ${dayEvents.length > 0 ? 'calendar-day--has-events' : ''}`}
+                  onClick={() => day && dayEvents.length > 0 && setSelectedDate({ day, month: calendarMonth.getMonth(), year: calendarMonth.getFullYear(), events: dayEvents })}
+                >
+                  {day && (
+                    <>
+                      <div className="calendar-day-num">{day}</div>
+                      {dayEvents.length > 0 && (
+                        <div className="calendar-day-events">
+                          {dayEvents.slice(0, 2).map(e => (
+                            <div
+                              key={e.id}
+                              className={`calendar-event-indicator ${eventBadge(e.eventType)}`}
+                              title={e.user?.username}
+                            >
+                              {eventIcon(e.eventType)}
+                            </div>
+                          ))}
+                          {dayEvents.length > 2 && (
+                            <span className="calendar-event-more">+{dayEvents.length - 2}</span>
+                          )}
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
       ) : filteredEvents.length === 0 ? (
         <div className="empty-state card">
@@ -343,12 +488,17 @@ const Dashboard = () => {
               : 'Try selecting a longer timeframe!'}
           </p>
         </div>
-      ) : (
+      ) : viewMode === 'grid' ? (
+        // GRID VIEW
         <div className="event-grid">
           {filteredEvents.map((event) => {
             const days = daysUntil(event.eventDate);
             return (
-              <div className="card event-card" key={event.id}>
+              <div 
+                className="card event-card event-card--interactive" 
+                key={event.id}
+                onClick={() => setDetailedEvent(event)}
+              >
                 <div className="event-card-top">
                   <div className={`event-card-icon ${eventBadge(event.eventType)}`}>
                     {eventIcon(event.eventType)}
@@ -378,6 +528,117 @@ const Dashboard = () => {
               </div>
             );
           })}
+        </div>
+      ) : (
+        // LIST VIEW
+        <div className="event-list">
+          {filteredEvents.map((event) => {
+            const days = daysUntil(event.eventDate);
+            return (
+              <div 
+                className="event-list-item card"
+                key={event.id}
+                onClick={() => setDetailedEvent(event)}
+              >
+                <div className="event-list-content">
+                  <div className="event-list-icon">
+                    <div className={`event-card-icon ${eventBadge(event.eventType)}`}>
+                      {eventIcon(event.eventType)}
+                    </div>
+                  </div>
+                  <div className="event-list-details">
+                    <h4 className="event-list-name">{event.user?.username || 'Someone'}</h4>
+                    <p className="event-list-date">{formatDate(event.eventDate)}</p>
+                    {event.description && <p className="event-list-desc">{event.description}</p>}
+                  </div>
+                  <div className="event-list-info">
+                    <span className={`badge ${eventBadge(event.eventType)}`}>
+                      {event.eventType || 'Event'}
+                    </span>
+                    <span className={`days-badge ${days === 0 ? 'days-today' : days <= 2 ? 'days-soon' : ''}`}>
+                      {days === 0 ? '🎉 Today!' : days === 1 ? 'Tomorrow' : `In ${days} days`}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Event Details Modal */}
+      {detailedEvent && (
+        <div className="modal-overlay" onClick={() => setDetailedEvent(null)}>
+          <div className="modal-content event-details-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Event Details</h2>
+              <button className="modal-close" onClick={() => setDetailedEvent(null)}>
+                <FiX size={24} />
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="detail-field">
+                <label>Person</label>
+                <p className="detail-value">{detailedEvent.user?.username || 'Unknown'}</p>
+              </div>
+              <div className="detail-field">
+                <label>Event Type</label>
+                <span className={`badge ${eventBadge(detailedEvent.eventType)}`}>
+                  {detailedEvent.eventType || 'Event'}
+                </span>
+              </div>
+              <div className="detail-field">
+                <label>Date</label>
+                <p className="detail-value">{new Date(detailedEvent.eventDate + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+              </div>
+              <div className="detail-field">
+                <label>Days Away</label>
+                <p className="detail-value">
+                  {daysUntil(detailedEvent.eventDate) === 0 ? '🎉 Today!' : daysUntil(detailedEvent.eventDate) === 1 ? 'Tomorrow' : `In ${daysUntil(detailedEvent.eventDate)} days`}
+                </p>
+              </div>
+              {detailedEvent.description && (
+                <div className="detail-field">
+                  <label>Description</label>
+                  <p className="detail-value">{detailedEvent.description}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Date Details Modal (from calendar click) */}
+      {selectedDate && (
+        <div className="modal-overlay" onClick={() => setSelectedDate(null)}>
+          <div className="modal-content date-details-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Events on {new Date(selectedDate.year, selectedDate.month, selectedDate.day).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}</h2>
+              <button className="modal-close" onClick={() => setSelectedDate(null)}>
+                <FiX size={24} />
+              </button>
+            </div>
+            <div className="modal-body date-events-list">
+              {selectedDate.events.map(event => (
+                <div 
+                  key={event.id}
+                  className="date-event-item"
+                  onClick={() => {
+                    setDetailedEvent(event);
+                    setSelectedDate(null);
+                  }}
+                >
+                  <div className={`event-card-icon ${eventBadge(event.eventType)}`}>
+                    {eventIcon(event.eventType)}
+                  </div>
+                  <div className="date-event-info">
+                    <h4>{event.user?.username}</h4>
+                    <span className={`badge ${eventBadge(event.eventType)}`}>{event.eventType}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       )}
     </div>
