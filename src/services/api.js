@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:9090';
+const API_URL = process.env.REACT_APP_API_URL;
 
 const api = axios.create({
   baseURL: API_URL,
@@ -21,7 +21,7 @@ api.interceptors.request.use( // Add auth token to headers
 
 // Redirect to login on 401
 api.interceptors.response.use(
-  (response) => response,//why response and not result? Because axios uses "response" to refer to the HTTP response object that is returned from the server after a request is made. The interceptor function receives this response object as an argument, allowing you to handle it (e.g., by checking for a 401 status code) before it is passed back to the calling code.
+  (response) => response, //why response and not result? Because axios uses "response" to refer to the HTTP response object that is returned from the server after a request is made. The interceptor function receives this response object as an argument, allowing you to handle it (e.g., by checking for a 401 status code) before it is passed back to the calling code.
   (error) => {
     if (error.response?.status === 401) { // 401 Unauthorized means the token is invalid or expired, so we log out the user
       localStorage.removeItem('token');
