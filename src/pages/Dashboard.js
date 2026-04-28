@@ -109,6 +109,7 @@ const getYearlyRecurringEventsForDate = (events, month, day) => {
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const [allEventsCache, setAllEventsCache] = useState([]); // Cache for all events
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedTimeframe, setSelectedTimeframe] = useState(7);
@@ -121,22 +122,67 @@ const Dashboard = () => {
   const [calendarMonth, setCalendarMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
   const [detailedEvent, setDetailedEvent] = useState(null); // For event details modal
+  const [cacheLoaded, setCacheLoaded] = useState(false); // Track if cache is loaded
   const searchInputRef = useRef(null);
   const dropdownRef = useRef(null);
 
+  // Fetch all events once on component mount (full year cache)
   useEffect(() => {
-    const fetchUpcoming = async () => {
+    const fetchAllEventsCache = async () => {
       try {
-        const { data } = await api.get(`/upcoming?days=${selectedTimeframe}`);
-        setEvents(data);
+        setLoading(true);
+        // Fetch entire year of events for caching
+        const { data } = await api.get('/upcoming?days=365');
+        setAllEventsCache(data);
+        setCacheLoaded(true);
       } catch (err) {
-        console.error('Failed to load upcoming events', err);
-      } finally {
+        console.error('Failed to load events cache', err);
         setLoading(false);
       }
     };
-    fetchUpcoming();
-  }, [selectedTimeframe]);
+    fetchAllEventsCache();
+  }, []);
+
+  // Filter cached events based on selected timeframe (no API call)
+  useEffect(() => {
+    if (!cacheLoaded) return;
+
+    const filteredByTimeframe = filterEventsByTimeframe(allEventsCache, selectedTimeframe);
+    setEvents(filteredByTimeframe);
+    setLoading(false);
+  }, [selectedTimeframe, cacheLoaded, allEventsCache]);
+
+  // Invalidate cache and refetch when needed (call this after create/update/delete)
+  const invalidateCache = async () => {
+    try {
+      const { data } = await api.get('/upcoming?days=365');
+      setAllEventsCache(data);
+    } catch (err) {
+      console.error('Failed to refresh events cache', err);
+    }
+  };
+
+  // Listen for cache invalidation events from other components (MyEvents, event creation, etc.)
+  useEffect(() => {
+    const handleCacheInvalidation = () => {
+      invalidateCache();
+    };
+
+    window.addEventListener('eventsUpdated', handleCacheInvalidation);
+    
+    // Also check when page becomes visible (comes back to focus)
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        invalidateCache();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('eventsUpdated', handleCacheInvalidation);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
 
   // Handle user search with autocomplete
   useEffect(() => {

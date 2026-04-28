@@ -81,6 +81,8 @@ const MyEvents = () => {
       }
       setModalOpen(false);
       fetchEvents();
+      // Invalidate dashboard cache
+      window.dispatchEvent(new Event('eventsUpdated'));
     } catch (err) {
       toast.error(err.response?.data || 'Save failed');
     } finally {
@@ -95,6 +97,8 @@ const MyEvents = () => {
       await api.delete(`/api/users/${userId}/events/${eventId}`);
       toast.success('Event deleted');
       fetchEvents();
+      // Invalidate dashboard cache
+      window.dispatchEvent(new Event('eventsUpdated'));
     } catch {
       toast.error('Delete failed');
     }
