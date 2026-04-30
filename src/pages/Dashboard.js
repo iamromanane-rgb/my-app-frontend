@@ -63,17 +63,17 @@ const filterEventsByTimeframe = (allEvents, days) => {
 };
 
 // Helper functions for calendar view
-const getDaysInMonth = (date) => {
+const getDaysInMonth = (date) => { //calculate how many days in a month
   return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
 };
 
-const getFirstDayOfMonth = (date) => {
+const getFirstDayOfMonth = (date) => { //get which day of week the month starts on (0=Sun, 1=Mon, etc.)
   return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
 };
 
-const getCalendarDays = (date) => {
-  const daysInMonth = getDaysInMonth(date);
-  const firstDay = getFirstDayOfMonth(date);
+const getCalendarDays = (date) => { // generate an array representing the calendar grid for the given month, with nulls for empty cells before the first day of the month
+  const daysInMonth = getDaysInMonth(date); //30
+  const firstDay = getFirstDayOfMonth(date); // 3
   const days = [];
   
   // Add empty cells for days before month starts
@@ -86,7 +86,7 @@ const getCalendarDays = (date) => {
     days.push(i);
   }
   
-  return days;
+  return days; // returns an array like [null, null, null, 1, 2, 3, ..., 30] for a month that starts on Wednesday and has 30 days
 };
 
 const getEventsForDate = (events, year, month, day) => {
@@ -118,7 +118,7 @@ const Dashboard = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [suggestedUsers, setSuggestedUsers] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
-  const [viewMode, setViewMode] = useState('list'); // list, grid, calendar
+  const [viewMode, setViewMode] = useState('grid'); // list, grid, calendar
   const [calendarMonth, setCalendarMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
   const [detailedEvent, setDetailedEvent] = useState(null); // For event details modal
@@ -172,15 +172,15 @@ const Dashboard = () => {
     
     // Also check when page becomes visible (comes back to focus)
     const handleVisibilityChange = () => {
-      if (!document.hidden) {
+      if (!document.hidden) { // document.hidden is true when page is not visible , false when visible 
         invalidateCache();
       }
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
-      window.removeEventListener('eventsUpdated', handleCacheInvalidation);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('eventsUpdated', handleCacheInvalidation); // clean up event listener when component unmounts
+      document.removeEventListener('visibilitychange', handleVisibilityChange); 
     };
   }, []);
 
@@ -231,7 +231,7 @@ const Dashboard = () => {
 
     // Filter by selected users
     if (selectedUsers.length > 0) {
-      return selectedUsers.some(u => u.id === event.user?.id);
+      return selectedUsers.some(u => u.id === event.user?.id); // Check if event's user is in selected users
     }
 
     return true;
@@ -469,7 +469,7 @@ const Dashboard = () => {
             </h3>
             <button 
               className="calendar-nav-btn"
-              onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 1))}
+              onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 1))} 
             >
               <FiChevronRight size={20} />
             </button>
@@ -640,7 +640,7 @@ const Dashboard = () => {
               <div className="detail-field">
                 <label>Days Away</label>
                 <p className="detail-value">
-                  {daysUntil(detailedEvent.eventDate) === 0 ? '🎉 Today!' : daysUntil(detailedEvent.eventDate) === 1 ? 'Tomorrow' : `In ${daysUntil(detailedEvent.eventDate)} days`}
+                  {daysUntil(detailedEvent.eventDate) === 0 ? '🎉 Today!' : daysUntil(detailedEvent.eventDate) === 1 ? 'Tomorrow' : `${daysUntil(detailedEvent.eventDate)} days`}
                 </p>
               </div>
               {detailedEvent.description && (

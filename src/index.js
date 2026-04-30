@@ -7,6 +7,7 @@ import App from './App';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import './index.css';
+import { SpeedInsights } from "@vercel/speed-insights/react"
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
