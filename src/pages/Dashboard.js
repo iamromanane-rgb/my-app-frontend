@@ -30,7 +30,7 @@ const daysUntil = (dateStr) => {
   const thisYear = eventDate;
   thisYear.setFullYear(today.getFullYear());
   if (thisYear < today) thisYear.setFullYear(today.getFullYear() + 1);
-  const diff = Math.ceil((thisYear - today) / (1000 * 60 * 60 * 24));
+  const diff = Math.ceil((thisYear - today) / (1000 * 60 * 60 * 24)); // 1000 * 60 * 60 * 24 converts milliseconds to days
   return diff;
 }; 
 
@@ -42,7 +42,7 @@ const TIMEFRAME_OPTIONS = [
   { label: 'Next Year', value: 365 },
 ];
 
-const filterEventsByTimeframe = (allEvents, days) => {
+const filterEventsByTimeframe = (allEvents, days) => { // filter the cached events based on the selected timeframe 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const cutoffDate = new Date(today);
@@ -113,14 +113,14 @@ const Dashboard = () => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedTimeframe, setSelectedTimeframe] = useState(7);
-  const [selectedEventType, setSelectedEventType] = useState('all');
-  const [selectedUsers, setSelectedUsers] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [suggestedUsers, setSuggestedUsers] = useState([]);
-  const [showDropdown, setShowDropdown] = useState(false);
+  const [selectedEventType, setSelectedEventType] = useState('all'); // all, birthday, anniversary, other
+  const [selectedUsers, setSelectedUsers] = useState([]); // users selected for filtering in search section
+  const [searchQuery, setSearchQuery] = useState(''); // For user search in filter section
+  const [suggestedUsers, setSuggestedUsers] = useState([]); // For autocomplete suggestions based on search
+  const [showDropdown, setShowDropdown] = useState(false); // to show autocomplete dropdown
   const [viewMode, setViewMode] = useState('grid'); // list, grid, calendar
-  const [calendarMonth, setCalendarMonth] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState(null);
+  const [calendarMonth, setCalendarMonth] = useState(new Date()); // which month to show in calendar view
+  const [selectedDate, setSelectedDate] = useState(null); // for calendar view - which date is selected to show details for
   const [detailedEvent, setDetailedEvent] = useState(null); // For event details modal
   const [cacheLoaded, setCacheLoaded] = useState(false); // Track if cache is loaded
   const searchInputRef = useRef(null);
@@ -204,7 +204,7 @@ const Dashboard = () => {
     const suggestions = filtered.filter(u => !selectedUsers.find(su => su.id === u.id));
     setSuggestedUsers(suggestions);
     setShowDropdown(true);
-  }, [searchQuery, events, selectedUsers]);
+  }, [searchQuery, events, selectedUsers]); 
 
   // Close dropdown when clicking outside
   useEffect(() => {
