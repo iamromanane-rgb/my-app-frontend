@@ -1,0 +1,31 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - echo "Phase 1 - Frontend Authentication"
+      - aws ecr get-login-password --region eu-north-1 > /tmp/ecr_login.txt
+      - cat /tmp/ecr_login.txt | docker login --username AWS --password-stdin 629003555230.dkr.ecr.eu-north-1.amazonaws.com
+      - REPOSITORY_URI=629003555230.dkr.ecr.eu-north-1.amazonaws.com/community-frontend-repository
+      - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+
+  build:
+    commands:
+      - echo "Phase 2 - Building Frontend Container"
+      - REPOSITORY_URI=629003555230.dkr.ecr.eu-north-1.amazonaws.com/community-frontend-repository
+      - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+      - docker build -t $REPOSITORY_URI:latest --build-arg REACT_APP_API_URL=http://your-backend-service:9090 -f Dockerfile .
+      - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
+
+  post_build:
+    commands:
+      - echo "Phase 3 - Pushing to ECR"
+      - REPOSITORY_URI=629003555230.dkr.ecr.eu-north-1.amazonaws.com/community-frontend-repository
+      - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+      - docker push $REPOSITORY_URI:latest
+      - docker push $REPOSITORY_URI:$IMAGE_TAG
+      - printf '[{"name":"frontend-container","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
+
+artifacts:
+  files:
+    - imagedefinitions.json
