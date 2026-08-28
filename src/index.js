@@ -17,6 +17,7 @@ root.render(
         <AuthProvider>
           <App />
           <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
+          <SpeedInsights />
         </AuthProvider>
       </ThemeProvider>
     </BrowserRouter>
